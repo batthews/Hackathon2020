@@ -141,12 +141,13 @@ def buildPredictionFile(matchups, year):
     teamList = seasonData['LTeamID'].unique()
     #print(teamList)
     # Read Ken Pom data
-    kenPomData = pd.read_csv('NCAA2020_Kenpom.csv')
+    kenPomData = pd.read_csv('ImprovedKenData'+str(year)+'.csv')
     #print(kenPomData.columns)
 
     # Create new data set with columns we want
-    newDataSet = kenPomData.drop(['FirstD1Season','LastD1Season','adj_o_rank', 'adj_d_rank','adj_tempo_rank','luck_rank',
-                                  'sos_adj_em_rank','sos_adj_d_rank','nc_sos_adj_em_rank','team','sos_adj_o_rank'], axis = 1)
+    #newDataSet = kenPomData.drop(['FirstD1Season','LastD1Season','adj_o_rank', 'adj_d_rank','adj_tempo_rank','luck_rank',
+    #                              'sos_adj_em_rank','sos_adj_d_rank','nc_sos_adj_em_rank','team','sos_adj_o_rank'], axis = 1)
+    newDataSet = kenPomData
     #print(newDataSet)
     # Only include season from year in our dataset
     newDataSet = newDataSet[newDataSet.Season < (year + 1)]
@@ -157,10 +158,12 @@ def buildPredictionFile(matchups, year):
     tourneyData = tourneyData[tourneyData.Season < (year + 1)]
     tourneyData = tourneyData[tourneyData.Season > (year - 1)]
     seasons = tourneyData['Season'].unique()
-    columnsWeCareAbout = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em','sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed']
+    columnsWeCareAbout = ['adj_em_y','adj_o_y','luck_y','adj_tempo_y','sos_adj_em_y','sos_adj_o_y','sos_adj_d_y','nc_sos_adj_em_y','ncaa_seed_x']
     trainingData = []
+    print(newDataSet)
     for i in range(0,len(matchups)):
         team1 = (newDataSet.loc[((newDataSet.TeamID == matchups[i][0])), columnsWeCareAbout ].values[0])
+        #print(team1)
         team2 = (newDataSet.loc[((newDataSet.TeamID == matchups[i][1])), columnsWeCareAbout ].values[0])
         # Submit
         #print(team1)
@@ -236,10 +239,19 @@ def combineToMakeSubmissionFile():
 #percentRight()
 #prediction2015()
 #buildPredictionFile()
-'''
-for i in range(2015,2019):
+
+for i in range(2019,2020):
     buildSubmissionFile(i)
     matchups = matchUps(i)
     buildPredictionFile(matchups, i)
-    prediction(matchups, i)'''
-combineToMakeSubmissionFile()
+    prediction(matchups, i)
+#combineToMakeSubmissionFile()
+
+def buildScrapedKenPastData(year):
+    kenData = pd.read_csv("NCAA"+str(year)+"_Kenpom_past.csv")
+    incorrectKenData = pd.read_csv("NCAA2020_Kenpom.csv")
+    merged_df = incorrectKenData.merge(kenData, how = 'inner', on = ['Season', 'TeamName'])
+    merged_df.to_csv("ImprovedKenData"+str(year)+".csv", index = False)
+
+#for i in range(2015,2020):
+#    buildScrapedKenPastData(i)
