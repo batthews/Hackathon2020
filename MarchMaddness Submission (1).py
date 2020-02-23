@@ -9,29 +9,23 @@ import pandas as pd
 import sklearn
 
 
-# In[130]:
+# In[262]:
 
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 
 
-# In[76]:
+# In[300]:
 
 
 seasonData = pd.read_csv('MDataFiles_Stage1/'+'MRegularSeasonDetailedResults.csv')
 seasonList = seasonData['Season'].unique()
 teamList = seasonData['LTeamID'].unique()
-data = []
-for season in seasonList:
-    for team in teamList:
-        data.append([season, team])
-
-seasonAvgs = pd.DataFrame(data, columns = ['Season','TeamID'])
 
 
-# In[152]:
+# In[284]:
 
 
 kenPomData = pd.read_csv('Hackathon2020/NCAA2020_Kenpom.csv')
@@ -40,14 +34,14 @@ newDataSet = kenPomData.drop(['FirstD1Season','LastD1Season','adj_o_rank', 'adj_
                               'sos_adj_em_rank','sos_adj_d_rank','nc_sos_adj_em_rank','team','sos_adj_o_rank'], axis = 1)
 
 
-# In[153]:
+# In[285]:
 
 
 newDataSet = newDataSet[newDataSet.Season > 2002]
 newDataSet
 
 
-# In[154]:
+# In[302]:
 
 
 tourneyData = pd.read_csv('MDataFiles_Stage1/'+'MNCAATourneyDetailedResults.csv')
@@ -62,27 +56,30 @@ for season in seasons:
         #include grab all features from the seasonAvg dataframe based on season and teamID
         wTeam = (newDataSet.loc[((newDataSet.TeamID == wTeamID) & (newDataSet.Season == season)), columnsWeCareAbout ].values[0])
         lTeam = (newDataSet.loc[((newDataSet.TeamID == lTeamID) & (newDataSet.Season == season)), columnsWeCareAbout ].values[0])
-        
         featureList = np.concatenate([wTeam,lTeam])
         featureList = np.append(featureList, 1)
         feature2 = np.concatenate([lTeam,wTeam])
         feature2 = np.append(feature2, 0)
         trainingData.append(featureList)
         trainingData.append(feature2)
+        
 temp = pd.DataFrame(trainingData, columns = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em',
                                             'sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed',
                                             'T2_adj_em','T2_adj_o','T2_luck','T2_adj_tempo','T2_sos_adj_em','T2_sos_adj_o',
                                              'T2_sos_adj_d','T2_nc_sos_adj_em','T2_ncaa_seed','Team1Win'])
+
+
+
 temp.to_csv("modelData_v1.csv", index = False)
 
 
-# In[150]:
+# In[ ]:
 
 
-mydata
 
 
-# In[256]:
+
+# In[279]:
 
 
 mydata = pd.read_csv('modelData_v1.csv')
@@ -92,21 +89,21 @@ y = mydata.iloc[:,-1]
 X_train, X_test, y_train, y_test = train_test_split(X,y,test_size = .25)
 
 
-# In[257]:
+# In[280]:
 
 
-model1 = LinearRegression()
+model1 = LogisticRegression()
 model1.fit(X_train, y_train)
 
 
-# In[258]:
+# In[281]:
 
 
 y_pred = model1.predict(X_test)
 y_test1 = y_test.tolist()
 
 
-# In[259]:
+# In[282]:
 
 
 totalright = 0
@@ -122,22 +119,22 @@ percentRight = totalright/len(y_pred)
 print(percentRight)
 
 
-# In[225]:
+# In[283]:
 
 
-type(y_pred[0])
+y_pred
 
 
-# In[227]:
+# In[278]:
 
 
 y_test
 
 
-# In[231]:
+# In[ ]:
 
 
-model1.coef_
+
 
 
 # In[ ]:
