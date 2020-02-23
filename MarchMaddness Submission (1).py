@@ -25,9 +25,43 @@ def buildNewCSV():
     newDataSet = newDataSet[newDataSet.Season > 2002]
     #print(newDataSet)
 
+    fgpct = []
+    twopct = []
+    ftpct = []
+    win14daypct = []
+    oR = []
+    dR = []
+    tO = []
+    for i, row in newDataSet.iterrows():
+        w1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.WTeamID == newDataSet.at[i, 'TeamID'])]
+        l1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.LTeamID == newDataSet.at[i, 'TeamID'])]
+        fgpct.append((w1['WFGM3'].sum() + l1['LFGM3'].sum()) / (w1['WFGA3'].sum() + l1['LFGA3'].sum()))
+        twopct.append((w1['WFGM'].sum() + l1['LFGM'].sum()) / (w1['WFGA'].sum() + l1['LFGA'].sum()))
+        ftpct.append((w1['WFTM'].sum() + l1['LFTM'].sum()) / (w1['WFTA'].sum() + l1['LFTA'].sum()))
+        win14daypct.append(
+            (w1[w1.DayNum > 118].shape[0]) / (w1[w1.DayNum > 118].shape[0] + l1[l1.DayNum > 118].shape[0]))
+        oR.append((w1['WOR'].sum() + l1['LOR'].sum()) / (w1['WOR'].shape[0] + l1['LOR'].shape[0]))
+        dR.append((w1['WDR'].sum() + l1['LDR'].sum()) / (w1['WDR'].shape[0] + l1['LDR'].shape[0]))
+        tO.append((w1['WTO'].sum() + l1['LTO'].sum()) / (w1['WTO'].shape[0] + l1['LTO'].shape[0]))
+
+    # In[535]:
+
+    newDataSet = newDataSet.assign(threeptavg=fgpct)
+    newDataSet = newDataSet.assign(twoptavg=twopct)
+    newDataSet = newDataSet.assign(winpct=win14daypct)
+    newDataSet = newDataSet.assign(ftpct=ftpct)
+    newDataSet = newDataSet.assign(OffRebGame=oR)
+    newDataSet = newDataSet.assign(DefRebGame=dR)
+    newDataSet = newDataSet.assign(TOperGame=tO)
+
     tourneyData = pd.read_csv('MNCAATourneyDetailedResults.csv')
     seasons = tourneyData['Season'].unique()
-    columnsWeCareAbout = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em','sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed']
+    columnsWeCareAbout = ['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em', 'sos_adj_o', 'sos_adj_d',
+                          'nc_sos_adj_em',
+                          'ncaa_seed', 'threeptavg', 'twoptavg', 'winpct', 'ftpct', 'OffRebGame', 'DefRebGame',
+                          'TOperGame']
     trainingData = []
     for season in seasons:
         seasonalTourneyData = tourneyData[tourneyData.Season == season]
@@ -44,10 +78,16 @@ def buildNewCSV():
             trainingData.append(featureList)
             trainingData.append(feature2)
     #print(trainingData)
-    temp = pd.DataFrame(trainingData, columns = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em',
-                                                'sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed',
-                                                'T2_adj_em','T2_adj_o','T2_luck','T2_adj_tempo','T2_sos_adj_em','T2_sos_adj_o',
-                                                 'T2_sos_adj_d','T2_nc_sos_adj_em','T2_ncaa_seed','Team1Win'])
+    temp = pd.DataFrame(trainingData, columns=['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em',
+                                               'sos_adj_o', 'sos_adj_d', 'nc_sos_adj_em', 'ncaa_seed', 'threeptavg',
+                                               'twoptavg',
+                                               'win14pct', 'ftpct', 'OffRebGame', 'DefRebGame', 'TO_game',
+                                               'T2_adj_em', 'T2_adj_o', 'T2_luck', 'T2_adj_tempo', 'T2_sos_adj_em',
+                                               'T2_sos_adj_o',
+                                               'T2_sos_adj_d', 'T2_nc_sos_adj_em', 'T2_ncaa_seed', 'T2_threeptavg',
+                                               'T2_twoptavg', 'T2_win14pct', 'T2_ftpct', 'T2_OffRebGame',
+                                               'T2_DefRebGame', 'T2_TO_game',
+                                               'Team1Win'])
 
     temp.to_csv("modelData_v1.csv", index = False)
 
@@ -105,12 +145,46 @@ def buildSubmissionFile(year):
     newDataSet = newDataSet[newDataSet.Season < year]
     #print(newDataSet)
 
+    fgpct = []
+    twopct = []
+    ftpct = []
+    win14daypct = []
+    oR = []
+    dR = []
+    tO = []
+    for i, row in newDataSet.iterrows():
+        w1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.WTeamID == newDataSet.at[i, 'TeamID'])]
+        l1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.LTeamID == newDataSet.at[i, 'TeamID'])]
+        fgpct.append((w1['WFGM3'].sum() + l1['LFGM3'].sum()) / (w1['WFGA3'].sum() + l1['LFGA3'].sum()))
+        twopct.append((w1['WFGM'].sum() + l1['LFGM'].sum()) / (w1['WFGA'].sum() + l1['LFGA'].sum()))
+        ftpct.append((w1['WFTM'].sum() + l1['LFTM'].sum()) / (w1['WFTA'].sum() + l1['LFTA'].sum()))
+        win14daypct.append(
+            (w1[w1.DayNum > 118].shape[0]) / (w1[w1.DayNum > 118].shape[0] + l1[l1.DayNum > 118].shape[0]))
+        oR.append((w1['WOR'].sum() + l1['LOR'].sum()) / (w1['WOR'].shape[0] + l1['LOR'].shape[0]))
+        dR.append((w1['WDR'].sum() + l1['LDR'].sum()) / (w1['WDR'].shape[0] + l1['LDR'].shape[0]))
+        tO.append((w1['WTO'].sum() + l1['LTO'].sum()) / (w1['WTO'].shape[0] + l1['LTO'].shape[0]))
+
+    # In[535]:
+
+    newDataSet = newDataSet.assign(threeptavg=fgpct)
+    newDataSet = newDataSet.assign(twoptavg=twopct)
+    newDataSet = newDataSet.assign(winpct=win14daypct)
+    newDataSet = newDataSet.assign(ftpct=ftpct)
+    newDataSet = newDataSet.assign(OffRebGame=oR)
+    newDataSet = newDataSet.assign(DefRebGame=dR)
+    newDataSet = newDataSet.assign(TOperGame=tO)
+
     tourneyData = pd.read_csv('MNCAATourneyDetailedResults.csv')
     tourneyData = tourneyData[tourneyData.Season < year]
     #print(tourneyData)
     seasons = tourneyData['Season'].unique()
     #print(seasons)
-    columnsWeCareAbout = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em','sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed']
+    columnsWeCareAbout = ['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em', 'sos_adj_o', 'sos_adj_d',
+                          'nc_sos_adj_em',
+                          'ncaa_seed', 'threeptavg', 'twoptavg', 'winpct', 'ftpct', 'OffRebGame', 'DefRebGame',
+                          'TOperGame']
     trainingData = []
     for season in seasons:
         seasonalTourneyData = tourneyData[tourneyData.Season == season]
@@ -127,11 +201,16 @@ def buildSubmissionFile(year):
             trainingData.append(featureList)
             trainingData.append(feature2)
     #print(trainingData)
-    temp = pd.DataFrame(trainingData, columns = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em',
-                                                'sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed',
-                                                'T2_adj_em','T2_adj_o','T2_luck','T2_adj_tempo','T2_sos_adj_em','T2_sos_adj_o',
-                                                 'T2_sos_adj_d','T2_nc_sos_adj_em','T2_ncaa_seed','Team1Win'])
-
+    temp = pd.DataFrame(trainingData, columns=['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em',
+                                               'sos_adj_o', 'sos_adj_d', 'nc_sos_adj_em', 'ncaa_seed', 'threeptavg',
+                                               'twoptavg',
+                                               'win14pct', 'ftpct', 'OffRebGame', 'DefRebGame', 'TO_game',
+                                               'T2_adj_em', 'T2_adj_o', 'T2_luck', 'T2_adj_tempo', 'T2_sos_adj_em',
+                                               'T2_sos_adj_o',
+                                               'T2_sos_adj_d', 'T2_nc_sos_adj_em', 'T2_ncaa_seed', 'T2_threeptavg',
+                                               'T2_twoptavg', 'T2_win14pct', 'T2_ftpct', 'T2_OffRebGame',
+                                               'T2_DefRebGame', 'T2_TO_game',
+                                               'Team1Win'])
     temp.to_csv("modelData_v1."+str(year)+".csv", index = False)
 
 def buildPredictionFile(matchups, year):
@@ -148,16 +227,52 @@ def buildPredictionFile(matchups, year):
     newDataSet = kenPomData.drop(['FirstD1Season','LastD1Season','adj_o_rank', 'adj_d_rank','adj_tempo_rank','luck_rank',
                                   'sos_adj_em_rank','sos_adj_d_rank','nc_sos_adj_em_rank','team','sos_adj_o_rank'], axis = 1)
     #print(newDataSet)
+
     # Only include season from year in our dataset
     newDataSet = newDataSet[newDataSet.Season < (year + 1)]
     newDataSet = newDataSet[newDataSet.Season > (year - 1)]
     #print(newDataSet)
     #print(newDataSet)
+
+    fgpct = []
+    twopct = []
+    ftpct = []
+    win14daypct = []
+    oR = []
+    dR = []
+    tO = []
+    for i, row in newDataSet.iterrows():
+        w1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.WTeamID == newDataSet.at[i, 'TeamID'])]
+        l1 = seasonData.loc[
+            (seasonData.Season == newDataSet.at[i, 'Season']) & (seasonData.LTeamID == newDataSet.at[i, 'TeamID'])]
+        fgpct.append((w1['WFGM3'].sum() + l1['LFGM3'].sum()) / (w1['WFGA3'].sum() + l1['LFGA3'].sum()))
+        twopct.append((w1['WFGM'].sum() + l1['LFGM'].sum()) / (w1['WFGA'].sum() + l1['LFGA'].sum()))
+        ftpct.append((w1['WFTM'].sum() + l1['LFTM'].sum()) / (w1['WFTA'].sum() + l1['LFTA'].sum()))
+        win14daypct.append(
+            (w1[w1.DayNum > 118].shape[0]) / (w1[w1.DayNum > 118].shape[0] + l1[l1.DayNum > 118].shape[0]))
+        oR.append((w1['WOR'].sum() + l1['LOR'].sum()) / (w1['WOR'].shape[0] + l1['LOR'].shape[0]))
+        dR.append((w1['WDR'].sum() + l1['LDR'].sum()) / (w1['WDR'].shape[0] + l1['LDR'].shape[0]))
+        tO.append((w1['WTO'].sum() + l1['LTO'].sum()) / (w1['WTO'].shape[0] + l1['LTO'].shape[0]))
+
+    # In[535]:
+
+    newDataSet = newDataSet.assign(threeptavg=fgpct)
+    newDataSet = newDataSet.assign(twoptavg=twopct)
+    newDataSet = newDataSet.assign(winpct=win14daypct)
+    newDataSet = newDataSet.assign(ftpct=ftpct)
+    newDataSet = newDataSet.assign(OffRebGame=oR)
+    newDataSet = newDataSet.assign(DefRebGame=dR)
+    newDataSet = newDataSet.assign(TOperGame=tO)
+
     tourneyData = pd.read_csv('MNCAATourneyDetailedResults.csv')
     tourneyData = tourneyData[tourneyData.Season < (year + 1)]
     tourneyData = tourneyData[tourneyData.Season > (year - 1)]
     seasons = tourneyData['Season'].unique()
-    columnsWeCareAbout = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em','sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed']
+    columnsWeCareAbout = ['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em', 'sos_adj_o', 'sos_adj_d',
+                          'nc_sos_adj_em',
+                          'ncaa_seed', 'threeptavg', 'twoptavg', 'winpct', 'ftpct', 'OffRebGame', 'DefRebGame',
+                          'TOperGame']
     trainingData = []
     for i in range(0,len(matchups)):
         team1 = (newDataSet.loc[((newDataSet.TeamID == matchups[i][0])), columnsWeCareAbout ].values[0])
@@ -167,11 +282,15 @@ def buildPredictionFile(matchups, year):
         featureList = np.concatenate([team1,team2])
         trainingData.append(featureList)
     #print(trainingData)
-    temp = pd.DataFrame(trainingData, columns = ['adj_em','adj_o','luck','adj_tempo','sos_adj_em',
-                                                'sos_adj_o','sos_adj_d','nc_sos_adj_em','ncaa_seed',
-                                                'T2_adj_em','T2_adj_o','T2_luck','T2_adj_tempo','T2_sos_adj_em','T2_sos_adj_o',
-                                                 'T2_sos_adj_d','T2_nc_sos_adj_em','T2_ncaa_seed'])
-    #print(temp)
+    temp = pd.DataFrame(trainingData, columns=['adj_em', 'adj_o', 'luck', 'adj_tempo', 'sos_adj_em',
+                                               'sos_adj_o', 'sos_adj_d', 'nc_sos_adj_em', 'ncaa_seed', 'threeptavg',
+                                               'twoptavg',
+                                               'win14pct', 'ftpct', 'OffRebGame', 'DefRebGame', 'TO_game',
+                                               'T2_adj_em', 'T2_adj_o', 'T2_luck', 'T2_adj_tempo', 'T2_sos_adj_em',
+                                               'T2_sos_adj_o',
+                                               'T2_sos_adj_d', 'T2_nc_sos_adj_em', 'T2_ncaa_seed', 'T2_threeptavg',
+                                               'T2_twoptavg', 'T2_win14pct', 'T2_ftpct', 'T2_OffRebGame',
+                                               'T2_DefRebGame', 'T2_TO_game'])
     temp.to_csv("modelData_v1."+str(year)+"pred.csv", index = False)
 
 def prediction(matchups, year):
@@ -227,7 +346,7 @@ def combineToMakeSubmissionFile():
     sub2018 = pd.read_csv('SubmissionStage1_2018.csv')
     sub2019 = pd.read_csv('SubmissionStage1_2019.csv')
     submissionFinal = pd.concat([sub2015,sub2016,sub2017,sub2018,sub2019], ignore_index=True)
-    del submissionFinal['Unnamed: 0']
+    #del submissionFinal['Unnamed: 0']
     print(submissionFinal)
     submissionFinal.to_csv("SubmissionFinal.csv", index = False)
 #buildNewCSV()
@@ -236,10 +355,10 @@ def combineToMakeSubmissionFile():
 #percentRight()
 #prediction2015()
 #buildPredictionFile()
-'''
-for i in range(2015,2019):
+
+for i in range(2015,2020):
     buildSubmissionFile(i)
     matchups = matchUps(i)
     buildPredictionFile(matchups, i)
-    prediction(matchups, i)'''
+    prediction(matchups, i)
 combineToMakeSubmissionFile()
